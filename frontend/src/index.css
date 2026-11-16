@@ -1,5 +1,12 @@
-
 @import "tailwindcss";
+
+@theme {
+  --color-workly-bg: #010133;
+  --color-workly-navy: #121984;
+  --color-workly-highlight: #4e59ff;
+  --color-workly-primary: #0010ff;
+  --color-workly-orange: #ff7700;
+}
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -17,4 +24,5 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: #010133;
 }
