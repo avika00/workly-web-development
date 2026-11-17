@@ -1,12 +1,34 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 function Navbar({ isLoggedIn = false }) {
+  const { pathname } = useLocation();
+
+  // Determine active navigation menu
+  const isActive = (path) => {
+    if (path === "/") {
+      return pathname === "/";
+    }
+
+    if (path === "/home") {
+      return pathname === "/home";
+    }
+
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
+
+  const navClass = (active) =>
+    `text-sm transition-colors duration-300 hover:text-[#4E59FF] ${
+      active ? "font-semibold" : "font-normal"
+    }`;
+
   return (
     <header className="absolute left-0 top-0 z-20 w-full bg-transparent text-white">
       <nav className="mx-auto flex h-[90px] max-w-[1440px] items-center justify-between px-8 md:px-16 lg:px-[7.5%]">
-
         {/* WORKLY LOGO */}
-        <Link to={isLoggedIn ? "/home" : "/"} className="flex shrink-0 items-center">
+        <Link
+          to={isLoggedIn ? "/home" : "/"}
+          className="flex shrink-0 items-center"
+        >
           <img
             src="/images/logos/logo-white.png"
             alt="Workly Logo"
@@ -18,28 +40,34 @@ function Navbar({ isLoggedIn = false }) {
         <div className="hidden items-center gap-12 md:flex">
           <Link
             to={isLoggedIn ? "/home" : "/"}
-            className="text-sm font-semibold text-white transition-colors duration-300 hover:text-[#4E59FF]"
+            className={navClass(
+              isLoggedIn ? isActive("/home") : isActive("/")
+            )}
           >
             Home
           </Link>
 
           <Link
             to="/jobs"
-            className="text-sm font-normal text-white transition-colors duration-300 hover:text-[#4E59FF]"
+            className={navClass(isActive("/jobs"))}
           >
             Explore Job
           </Link>
 
           <Link
             to={isLoggedIn ? "/post-job" : "/register"}
-            className="text-sm font-normal text-white transition-colors duration-300 hover:text-[#4E59FF]"
+            className={navClass(
+              isLoggedIn && isActive("/post-job")
+            )}
           >
             Post a Job
           </Link>
 
           <Link
             to={isLoggedIn ? "/activity" : "/register"}
-            className="text-sm font-normal text-white transition-colors duration-300 hover:text-[#4E59FF]"
+            className={navClass(
+              isLoggedIn && isActive("/activity")
+            )}
           >
             Activity
           </Link>
@@ -48,7 +76,6 @@ function Navbar({ isLoggedIn = false }) {
         {/* RIGHT MENU */}
         {isLoggedIn ? (
           <div className="flex shrink-0 items-center gap-5">
-
             {/* NOTIFICATION */}
             <Link
               to="/notifications"
@@ -74,7 +101,6 @@ function Navbar({ isLoggedIn = false }) {
             >
               A
             </Link>
-
           </div>
         ) : (
           /* SIGN IN */
@@ -85,7 +111,6 @@ function Navbar({ isLoggedIn = false }) {
             Sign In
           </Link>
         )}
-
       </nav>
     </header>
   );

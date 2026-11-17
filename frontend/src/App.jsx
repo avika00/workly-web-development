@@ -22,6 +22,19 @@ import ActivitySummary from "./components/ActivitySummary";
 import OpportunitiesForYou from "./components/OpportunitiesForYou";
 import CompleteYourProfile from "./components/CompleteYourProfile";
 
+// Explore Jobs
+import ExploreJobs from "./components/ExploreJobs";
+
+// Post a Job
+import MyJobPosts from "./components/MyJobPosts";
+import CompanyStep from "./components/CompanyStep";
+import JobDetailsStep from "./components/JobDetailsStep";
+import ReviewStep from "./components/ReviewStep";
+import JobPostedSuccess from "./components/JobPostedSuccess";
+
+// Notifications
+import Notifications from "./components/Notifications";
+
 // HOME BEFORE LOGIN
 function HomeBeforeLogin() {
   return (
@@ -57,7 +70,6 @@ function HomeBeforeLogin() {
 function HomeAfterLogin() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#010133]">
-
       {/* Background Glow */}
       <div
         className="pointer-events-none absolute left-0 top-0 z-0 h-[950px] w-full bg-no-repeat"
@@ -121,13 +133,54 @@ function App() {
       {/* Home After Login */}
       <Route path="/home" element={<HomeAfterLogin />} />
 
-      {/* Other Pages */}
-      <Route path="/jobs" element={<PlaceholderPage title="Explore Jobs" />} />
+      {/* Explore Jobs */}
+      <Route path="/jobs" element={<ExploreJobs />} />
       <Route path="/jobs/:id" element={<JobDetailPage />} />
-      <Route path="/post-job" element={<PlaceholderPage title="Post a Job" />} />
-      <Route path="/activity" element={<PlaceholderPage title="Activity" />} />
-      <Route path="/profile" element={<PlaceholderPage title="Profile" />} />
-      <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
+
+      {/* Post a Job */}
+      <Route path="/post-job" element={<MyJobPosts />} />
+
+      <Route
+        path="/post-job/create/company"
+        element={<CompanyStep />}
+      />
+
+      <Route
+        path="/post-job/create/details"
+        element={<JobDetailsStep />}
+      />
+
+      <Route
+        path="/post-job/create/review"
+        element={<ReviewStep />}
+      />
+
+      <Route
+        path="/post-job/success"
+        element={<JobPostedSuccess />}
+      />
+
+      <Route
+        path="/post-job/:id"
+        element={<PlaceholderPage title="Job Post Details" />}
+      />
+
+      {/* Notifications */}
+      <Route
+        path="/notifications"
+        element={<Notifications />}
+      />
+
+      {/* Other Pages */}
+      <Route
+        path="/activity"
+        element={<PlaceholderPage title="Activity" />}
+      />
+
+      <Route
+        path="/profile"
+        element={<PlaceholderPage title="Profile" />}
+      />
 
       {/* 404 */}
       <Route
