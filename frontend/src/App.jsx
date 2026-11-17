@@ -1,4 +1,4 @@
-import { Routes, Route, useParams } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 // Shared Components
 import Navbar from "./components/Navbar";
@@ -24,6 +24,7 @@ import CompleteYourProfile from "./components/CompleteYourProfile";
 
 // Explore Jobs
 import ExploreJobs from "./components/ExploreJobs";
+import JobDetail from "./components/JobDetail";
 
 // Post a Job
 import MyJobPosts from "./components/MyJobPosts";
@@ -31,9 +32,16 @@ import CompanyStep from "./components/CompanyStep";
 import JobDetailsStep from "./components/JobDetailsStep";
 import ReviewStep from "./components/ReviewStep";
 import JobPostedSuccess from "./components/JobPostedSuccess";
+import JobPostDetails from "./components/JobPostDetails";
+
+// Activity
+import Activity from "./components/Activity";
 
 // Notifications
 import Notifications from "./components/Notifications";
+
+// Profile
+import Profile from "./components/Profile";
 
 // HOME BEFORE LOGIN
 function HomeBeforeLogin() {
@@ -52,7 +60,6 @@ function HomeBeforeLogin() {
         }}
       />
 
-      {/* Page Content */}
       <div className="relative z-10">
         <Navbar />
         <Hero />
@@ -83,7 +90,6 @@ function HomeAfterLogin() {
         }}
       />
 
-      {/* Page Content */}
       <div className="relative z-10">
         <Navbar isLoggedIn={true} />
         <WelcomeSection />
@@ -111,13 +117,6 @@ function PlaceholderPage({ title }) {
   );
 }
 
-// JOB DETAIL
-function JobDetailPage() {
-  const { id } = useParams();
-
-  return <PlaceholderPage title={`Job Detail - ${id}`} />;
-}
-
 // MAIN ROUTES
 function App() {
   return (
@@ -135,35 +134,33 @@ function App() {
 
       {/* Explore Jobs */}
       <Route path="/jobs" element={<ExploreJobs />} />
-      <Route path="/jobs/:id" element={<JobDetailPage />} />
+      <Route path="/jobs/:id" element={<JobDetail />} />
 
       {/* Post a Job */}
       <Route path="/post-job" element={<MyJobPosts />} />
-
       <Route
         path="/post-job/create/company"
         element={<CompanyStep />}
       />
-
       <Route
         path="/post-job/create/details"
         element={<JobDetailsStep />}
       />
-
       <Route
         path="/post-job/create/review"
         element={<ReviewStep />}
       />
-
       <Route
         path="/post-job/success"
         element={<JobPostedSuccess />}
       />
-
       <Route
         path="/post-job/:id"
-        element={<PlaceholderPage title="Job Post Details" />}
+        element={<JobPostDetails />}
       />
+
+      {/* Activity */}
+      <Route path="/activity" element={<Activity />} />
 
       {/* Notifications */}
       <Route
@@ -171,15 +168,10 @@ function App() {
         element={<Notifications />}
       />
 
-      {/* Other Pages */}
-      <Route
-        path="/activity"
-        element={<PlaceholderPage title="Activity" />}
-      />
-
+      {/* Profile */}
       <Route
         path="/profile"
-        element={<PlaceholderPage title="Profile" />}
+        element={<Profile />}
       />
 
       {/* 404 */}
