@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+
   --color-workly-bg: #010133;
   --color-workly-navy: #121984;
   --color-workly-highlight: #4e59ff;
@@ -8,21 +10,15 @@
   --color-workly-orange: #ff7700;
 }
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@layer base {
+  :root {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: #010133;
+  body {
+    @apply m-0 min-h-screen min-w-80 bg-workly-bg font-sans text-white;
+  }
 }

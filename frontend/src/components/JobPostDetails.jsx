@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Palette,
   MoreVertical,
   ChevronLeft,
   Eye,
@@ -10,39 +9,7 @@ import {
 import Navbar from "./Navbar";
 import PageFooter from "./PageFooter";
 
-const applicantsData = [
-  {
-    id: 1,
-    name: "Aulia Rahma",
-    applied: "Sep 24",
-    status: "Pending",
-  },
-  {
-    id: 2,
-    name: "Dimas Pratama",
-    applied: "Sep 23",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    name: "Farhan Akbar",
-    applied: "Sep 23",
-    status: "Accepted",
-  },
-  {
-    id: 4,
-    name: "Nabila Putri",
-    applied: "Sep 20",
-    status: "Rejected",
-  },
-];
-
-const statistics = [
-  { label: "Applications", value: 13 },
-  { label: "Pending", value: 7 },
-  { label: "Accepted", value: 3 },
-  { label: "Rejected", value: 3 },
-];
+const API_URL = "http://localhost:8000";
 
 function StatusBadge({ status }) {
   const styles = {
@@ -53,7 +20,9 @@ function StatusBadge({ status }) {
 
   return (
     <span
-      className={`inline-flex min-w-[102px] items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium ${styles[status]}`}
+      className={`inline-flex min-w-[102px] items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium ${
+        styles[status] || styles.Pending
+      }`}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-white" />
       {status}
@@ -61,7 +30,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function OverviewContent() {
+function OverviewContent({ job, formatDeadline }) {
   return (
     <div className="grid grid-cols-1 gap-6 pb-10 lg:grid-cols-2">
       {/* ABOUT THE JOB */}
@@ -70,35 +39,33 @@ function OverviewContent() {
           About the Job
         </h2>
 
-        <p className="mb-7 text-sm leading-7 text-white/80 md:text-base">
-          We’re looking for a creative UI/UX Designer to help us design
-          a mobile application that solves real user problems. You will
-          work closely with our product and development teams to create
-          intuitive and visually appealing experiences.
+        <p className="mb-7 whitespace-pre-line text-sm leading-7 text-white/80 md:text-base">
+          {job.description}
         </p>
 
         <h3 className="mb-4 text-lg font-semibold text-white">
           Responsibilities
         </h3>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {[
-            "Design mobile app interfaces",
-            "Create wireframe and prototype",
-            "Conduct basic user research",
-            "Collaborate with the development team",
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="rounded-xl border border-[#454B91]/60 bg-[#22245B]/60 p-4 text-sm leading-6 text-white/85"
-            >
-              <span className="mb-2 block text-xs font-semibold text-[#8992FF]">
-                0{index + 1}
-              </span>
-              {item}
-            </div>
-          ))}
-        </div>
+        {job.responsibilities.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {job.responsibilities.map((item, index) => (
+              <div
+                key={index}
+                className="rounded-xl border border-[#454B91]/60 bg-[#22245B]/60 p-4 text-sm leading-6 text-white/85"
+              >
+                <span className="mb-2 block text-xs font-semibold text-[#8992FF]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {item}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-white/60">
+            No responsibilities listed.
+          </p>
+        )}
       </section>
 
       {/* REQUIREMENTS */}
@@ -112,18 +79,20 @@ function OverviewContent() {
             Skills
           </h3>
 
-          <div className="flex flex-wrap gap-3">
-            {["Figma", "UI/UX", "Prototyping", "User Research"].map(
-              (skill) => (
+          {job.skills.length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {job.skills.map((skill) => (
                 <span
                   key={skill}
                   className="rounded-full border border-[#343CBB] bg-[#10127C] px-5 py-2 text-xs text-white"
                 >
                   {skill}
                 </span>
-              )
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-white/60">No specific skills required.</p>
+          )}
         </div>
 
         <div className="mb-7">
@@ -133,7 +102,7 @@ function OverviewContent() {
 
           <div className="rounded-xl border border-[#454B91]/60 bg-[#22245B]/60 p-4">
             <span className="inline-flex rounded-full bg-[#10127C] px-5 py-2 text-xs text-white">
-              Figma
+              {job.experience}
             </span>
           </div>
         </div>
@@ -144,7 +113,7 @@ function OverviewContent() {
           </h3>
 
           <div className="inline-flex rounded-full border border-[#343CBB] bg-[#10127C] px-5 py-2 text-xs text-white">
-            October 21st 2026
+            {formatDeadline(job.deadline)}
           </div>
         </div>
       </section>
@@ -152,7 +121,7 @@ function OverviewContent() {
   );
 }
 
-function ApplicantsContent() {
+function ApplicantsContent({ jobId, applicants }) {
   const [filter, setFilter] = useState("All");
   const navigate = useNavigate();
 
@@ -160,10 +129,8 @@ function ApplicantsContent() {
 
   const filteredApplicants =
     filter === "All"
-      ? applicantsData
-      : applicantsData.filter(
-          (applicant) => applicant.status === filter
-        );
+      ? applicants
+      : applicants.filter((applicant) => applicant.status === filter);
 
   return (
     <section className="pb-12">
@@ -230,7 +197,7 @@ function ApplicantsContent() {
                   <td className="px-7 py-5 text-center">
                     <button
                       onClick={() =>
-                        navigate(`/post-job/1/applicant/${applicant.id}`)
+                        navigate(`/post-job/${jobId}/applicant/${applicant.id}`)
                       }
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-white/80 px-5 py-2 text-xs text-white transition hover:border-[#4E59FF] hover:bg-[#20228B]"
                     >
@@ -262,7 +229,104 @@ function ApplicantsContent() {
 function JobPostDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const currentUser = JSON.parse(localStorage.getItem("workly_user") || "null");
+
+  const [job, setJob] = useState(null);
+  const [stats, setStats] = useState({
+    applications: 0,
+    pending: 0,
+    accepted: 0,
+    rejected: 0,
+  });
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Overview");
+  const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser?.ID_USER) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchManageDetail = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${API_URL}/jobs/manage_detail.php?id_job=${id}&id_user=${currentUser.ID_USER}`
+        );
+        const result = await res.json();
+
+        if (result.status && result.job) {
+          setJob(result.job);
+          setStats(result.statistics);
+          setApplicants(result.applicants || []);
+        } else {
+          setJob(null);
+        }
+      } catch (err) {
+        console.error("Gagal memuat detail lowongan:", err);
+        setJob(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchManageDetail();
+  }, [id, currentUser?.ID_USER, navigate]);
+
+  const formatDeadline = (dateStr) => {
+    if (!dateStr) return "No deadline";
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const handleStatusAction = async (action) => {
+    setShowMenu(false);
+
+    if (
+      action === "Delete" &&
+      !window.confirm("Yakin ingin menghapus lowongan ini secara permanen?")
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/jobs/update_status.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_job: job.id,
+          id_user: currentUser.ID_USER,
+          action,
+        }),
+      });
+      const result = await res.json();
+
+      if (result.status) {
+        if (action === "Delete") {
+          navigate("/post-job");
+        } else {
+          setJob((prev) => ({ ...prev, status: result.newStatus }));
+        }
+      } else {
+        alert(result.message || "Gagal memperbarui status lowongan.");
+      }
+    } catch (err) {
+      alert("Gagal terhubung ke server PHP.");
+    }
+  };
+
+  const statistics = [
+    { label: "Applications", value: stats.applications },
+    { label: "Pending", value: stats.pending },
+    { label: "Accepted", value: stats.accepted },
+    { label: "Rejected", value: stats.rejected },
+  ];
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#010133] text-white">
@@ -293,82 +357,144 @@ function JobPostDetails() {
             Back to My Job Posts
           </button>
 
-          {/* JOB HEADER */}
-          <div className="mb-10 flex items-start justify-between gap-5">
-            <div className="flex items-center gap-5">
-              <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-2xl bg-[#171744]">
-                <Palette size={42} className="text-[#FFB56B]" />
-              </div>
+          {loading ? (
+            <div className="rounded-2xl border border-white/10 bg-[#101039]/75 py-20 text-center text-sm text-white/75">
+              Memuat detail lowongan...
+            </div>
+          ) : !job ? (
+            <div className="rounded-2xl border border-white/10 bg-[#101039]/75 py-20 text-center">
+              <h2 className="text-xl font-bold">Lowongan tidak ditemukan</h2>
+              <p className="mt-2 text-sm text-white/60">
+                Pastikan kamu membuka lowongan yang dibuat oleh akun ini.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* JOB HEADER */}
+              <div className="mb-10 flex items-start justify-between gap-5">
+                <div className="flex items-center gap-5">
+                  <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#171744] text-4xl">
+                    {job.logo ? (
+                      <img
+                        src={`${API_URL}/uploads/logos/${job.logo}`}
+                        alt={job.company}
+                        className="h-full w-full bg-white object-contain p-2"
+                      />
+                    ) : (
+                      "💼"
+                    )}
+                  </div>
 
-              <div>
-                <div className="mb-2 flex flex-wrap items-center gap-4">
-                  <h1 className="text-2xl font-bold md:text-3xl">
-                    UI/UX Designer
-                  </h1>
+                  <div>
+                    <div className="mb-2 flex flex-wrap items-center gap-4">
+                      <h1 className="text-2xl font-bold md:text-3xl">
+                        {job.title}
+                      </h1>
 
-                  <span className="rounded-full bg-[#2DA66C] px-7 py-2 text-xs font-semibold text-white">
-                    Active
-                  </span>
+                      <span
+                        className={`rounded-full px-7 py-2 text-xs font-semibold text-white ${
+                          job.status === "Active"
+                            ? "bg-[#2DA66C]"
+                            : job.status === "Closed"
+                              ? "bg-[#B83C43]"
+                              : "bg-[#777B8A]"
+                        }`}
+                      >
+                        {job.status}
+                      </span>
+                    </div>
+
+                    <p className="mb-2 text-base text-white/90">
+                      {job.company}
+                    </p>
+
+                    <p className="text-sm text-white/75">
+                      {job.location} · {job.type} · {job.salary}
+                    </p>
+                  </div>
                 </div>
 
-                <p className="mb-2 text-base text-white/90">
-                  CV. Creative Studio
-                </p>
+                {/* MORE OPTIONS MENU */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMenu((prev) => !prev)}
+                    aria-label="More options"
+                    className="rounded-full p-2 text-white transition hover:bg-white/10"
+                  >
+                    <MoreVertical size={25} />
+                  </button>
 
-                <p className="text-sm text-white/75">
-                  Remote · Freelance · Rp2–4M
-                </p>
+                  {showMenu && (
+                    <div className="absolute right-0 top-12 z-30 w-48 rounded-xl border border-white/15 bg-[#171744] p-2 shadow-xl">
+                      {job.status === "Active" ? (
+                        <button
+                          onClick={() => handleStatusAction("Closed")}
+                          className="w-full rounded-lg px-3 py-2 text-left text-sm text-white transition hover:bg-white/10"
+                        >
+                          Close Job Post
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleStatusAction("Active")}
+                          className="w-full rounded-lg px-3 py-2 text-left text-sm text-white transition hover:bg-white/10"
+                        >
+                          Reopen Job Post
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleStatusAction("Delete")}
+                        className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-[#FF6B78] transition hover:bg-white/10"
+                      >
+                        Delete Job Post
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <button
-              aria-label="More options"
-              className="rounded-full p-2 text-white transition hover:bg-white/10"
-            >
-              <MoreVertical size={25} />
-            </button>
-          </div>
+              {/* STATISTICS */}
+              <div className="mb-12 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-8">
+                {statistics.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex min-h-[120px] flex-col items-center justify-center rounded-2xl border border-[#555B9B]/60 bg-gradient-to-br from-[#24245D]/90 to-[#15153F]/90 shadow-[inset_0_1px_10px_rgba(255,255,255,0.04)]"
+                  >
+                    <span className="text-5xl font-bold leading-none text-white md:text-6xl">
+                      {item.value}
+                    </span>
 
-          {/* STATISTICS */}
-          <div className="mb-12 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-8">
-            {statistics.map((item) => (
-              <div
-                key={item.label}
-                className="flex min-h-[120px] flex-col items-center justify-center rounded-2xl border border-[#555B9B]/60 bg-gradient-to-br from-[#24245D]/90 to-[#15153F]/90 shadow-[inset_0_1px_10px_rgba(255,255,255,0.04)]"
-              >
-                <span className="text-5xl font-bold leading-none text-white md:text-6xl">
-                  {item.value}
-                </span>
-
-                <span className="mt-2 text-base text-white md:text-lg">
-                  {item.label}
-                </span>
+                    <span className="mt-2 text-base text-white md:text-lg">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* TABS */}
-          <div className="mb-8 flex justify-center border-b border-[#7779B5]/70">
-            {["Overview", "Applicants"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`min-w-[150px] px-7 py-4 text-base font-semibold transition md:min-w-[215px] md:text-lg ${
-                  activeTab === tab
-                    ? "bg-gradient-to-b from-[#292C8C] to-[#16164B] text-white"
-                    : "text-white/80 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+              {/* TABS */}
+              <div className="mb-8 flex justify-center border-b border-[#7779B5]/70">
+                {["Overview", "Applicants"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`min-w-[150px] px-7 py-4 text-base font-semibold transition md:min-w-[215px] md:text-lg ${
+                      activeTab === tab
+                        ? "bg-gradient-to-b from-[#292C8C] to-[#16164B] text-white"
+                        : "text-white/80 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
 
-          {/* TAB CONTENT */}
-          {activeTab === "Overview" ? (
-            <OverviewContent />
-          ) : (
-            <ApplicantsContent />
+              {/* TAB CONTENT */}
+              {activeTab === "Overview" ? (
+                <OverviewContent job={job} formatDeadline={formatDeadline} />
+              ) : (
+                <ApplicantsContent jobId={job.id} applicants={applicants} />
+              )}
+            </>
           )}
         </div>
 

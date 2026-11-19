@@ -4,16 +4,19 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import PageFooter from "./PageFooter";
 
+const API_URL = "http://localhost:8000";
+
 function ReviewStep() {
   const navigate = useNavigate();
 
   const [job, setJob] = useState(null);
   const [company, setCompany] = useState(null);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     try {
       const savedJob = sessionStorage.getItem("worklyJobDetails");
-      const savedCompany = sessionStorage.getItem("worklyCompanyInfo");
+      const savedCompany = sessionStorage.getItem("worklyCompanyData");
 
       if (savedJob) setJob(JSON.parse(savedJob));
       if (savedCompany) setCompany(JSON.parse(savedCompany));
@@ -33,22 +36,49 @@ function ReviewStep() {
     });
   };
 
-  const handlePublish = () => {
-    if (!job) return;
+  const handlePublish = async () => {
+    if (!job || publishing) return;
 
-    const publishedJob = {
-      ...job,
-      company: company || {},
-      publishedAt: new Date().toISOString(),
-      status: "Active",
-    };
+    const currentUser = JSON.parse(localStorage.getItem("workly_user") || "null");
+    if (!currentUser?.ID_USER) {
+      alert("Sesi login berakhir. Silakan login kembali.");
+      navigate("/login");
+      return;
+    }
 
-    sessionStorage.setItem(
-      "worklyPublishedJob",
-      JSON.stringify(publishedJob)
-    );
+    setPublishing(true);
 
-    navigate("/post-job/success");
+    try {
+      const res = await fetch(`${API_URL}/jobs/create.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_user: currentUser.ID_USER,
+          company: company || {},
+          job,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (result.status) {
+        // Bersihkan draft form setelah berhasil masuk ke database
+        sessionStorage.removeItem("worklyCompanyData");
+        sessionStorage.removeItem("worklyJobDetails");
+        sessionStorage.setItem(
+          "worklyPublishedJob",
+          JSON.stringify({ id_job: result.id_job, ...job, company })
+        );
+
+        navigate("/post-job/success");
+      } else {
+        alert(result.message || "Gagal mempublikasikan lowongan.");
+      }
+    } catch (err) {
+      alert("Gagal terhubung ke server PHP.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   if (!job) {
@@ -144,7 +174,7 @@ function ReviewStep() {
 
           {/* Job Heading */}
           <div className="mt-12 flex items-center gap-5 px-2 sm:px-3">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden text-4xl">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl text-4xl">
               {companyLogo ? (
                 <img
                   src={companyLogo}
@@ -281,7 +311,8 @@ function ReviewStep() {
             <button
               type="button"
               onClick={() => navigate("/post-job/create/details")}
-              className="flex h-[56px] min-w-[140px] items-center justify-center rounded-xl bg-[#A3A3A3] px-7 text-sm font-medium text-white transition hover:bg-[#888]"
+              disabled={publishing}
+              className="flex h-[56px] min-w-[140px] items-center justify-center rounded-xl bg-[#A3A3A3] px-7 text-sm font-medium text-white transition hover:bg-[#888] disabled:opacity-60"
             >
               Back
             </button>
@@ -289,9 +320,10 @@ function ReviewStep() {
             <button
               type="button"
               onClick={handlePublish}
-              className="flex h-[56px] min-w-[195px] items-center justify-center rounded-xl bg-[#2865F5] px-7 text-sm font-semibold text-white transition hover:bg-[#174FE0]"
+              disabled={publishing}
+              className="flex h-[56px] min-w-[195px] items-center justify-center rounded-xl bg-[#2865F5] px-7 text-sm font-semibold text-white transition hover:bg-[#174FE0] disabled:opacity-60"
             >
-              Publish Job
+              {publishing ? "Publishing..." : "Publish Job"}
             </button>
           </div>
         </div>

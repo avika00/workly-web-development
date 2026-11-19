@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -9,174 +9,19 @@ import {
   Bookmark,
   ChevronRight,
   MessageCircle,
+  CheckCheck,
 } from "lucide-react";
 
 import Navbar from "./Navbar";
 import PageFooter from "./PageFooter";
 
-const notificationsData = [
-  {
-    id: 1,
-    category: "Applications",
-    type: "applicant",
-    name: "Aria Seraphina",
-    title: "applied for",
-    job: "UI/UX Designer",
-    company: "CV. Creative Studio",
-    message:
-      '"Hey! I\'m interested in this position and have attached my updated Figma portfolio and resume."',
-    status: "Active",
-    extra: "12 Applicants",
-    time: "10m ago",
-    unread: true,
-    action: "Review Application",
-    icon: "AS",
-  },
-  {
-    id: 2,
-    category: "Applications",
-    type: "approved",
-    title: "Your Job Post has been Approved",
-    message:
-      "Your listing for Frontend Developer is now live and accepting applications.",
-    job: "Frontend Developer",
-    status: "Active",
-    time: "45m ago",
-    unread: true,
-    action: "View Job Post",
-  },
-  {
-    id: 3,
-    category: "Applications",
-    type: "message",
-    name: "Budi Prasetyo",
-    title: "sent a message regarding",
-    job: "Senior Backend Engineer",
-    message:
-      '"Thank you for reviewing my profile! I am available for a screening call tomorrow."',
-    status: "Interview",
-    time: "2h ago",
-    unread: true,
-    action: "Reply Message",
-    icon: "BP",
-  },
-  {
-    id: 4,
-    category: "Applications",
-    type: "closed",
-    title: "Job Post Closed: Social Media Analyst",
-    message:
-      "The application deadline for Social Media Analyst has passed. You received 19 applications.",
-    status: "Closed",
-    time: "Yesterday at 16:30",
-    unread: false,
-    action: "View Summary",
-  },
-  {
-    id: 5,
-    category: "System",
-    type: "security",
-    title: "Security Alert: New sign-in detected",
-    message:
-      "Signed in from Chrome on macOS (Surabaya, Indonesia). If this wasn't you, review your account security.",
-    status: "System",
-    time: "3 days ago",
-    unread: false,
-    action: "Check Details",
-  },
-  {
-    id: 6,
-    category: "Saved Jobs",
-    type: "saved",
-    title: "A saved job is closing soon",
-    message:
-      "The application deadline for Product Designer at Digital Creative is approaching.",
-    status: "Reminder",
-    time: "4 days ago",
-    unread: true,
-    action: "View Job",
-  },
-  {
-    id: 7,
-    category: "Applications",
-    type: "approved",
-    title: "Your application has been viewed",
-    message:
-      "Techno Solutions has viewed your application for Frontend Developer.",
-    status: "Application",
-    time: "5 days ago",
-    unread: false,
-    action: "View Activity",
-  },
-  {
-    id: 8,
-    category: "System",
-    type: "system",
-    title: "Welcome to Workly!",
-    message:
-      "Your account is ready. Complete your profile to get better opportunities.",
-    status: "System",
-    time: "1 week ago",
-    unread: false,
-    action: "Complete Profile",
-  },
-  {
-    id: 9,
-    category: "Applications",
-    type: "message",
-    name: "Nadia Putri",
-    title: "sent a message regarding",
-    job: "UI/UX Designer",
-    message:
-      '"Thank you for the opportunity. I look forward to hearing from you."',
-    status: "Message",
-    time: "1 week ago",
-    unread: false,
-    action: "Reply Message",
-    icon: "NP",
-  },
-  {
-    id: 10,
-    category: "Saved Jobs",
-    type: "saved",
-    title: "New opportunity matching your saved job",
-    message:
-      "A new UI Designer position is available at Creative Digital Agency.",
-    status: "New Job",
-    time: "1 week ago",
-    unread: false,
-    action: "View Job",
-  },
-  {
-    id: 11,
-    category: "System",
-    type: "system",
-    title: "Profile update reminder",
-    message:
-      "Add your skills and portfolio to make your profile stand out.",
-    status: "Reminder",
-    time: "2 weeks ago",
-    unread: false,
-    action: "Update Profile",
-  },
-  {
-    id: 12,
-    category: "Applications",
-    type: "closed",
-    title: "Application status updated",
-    message:
-      "Your application status for Marketing Specialist has been updated.",
-    status: "Updated",
-    time: "2 weeks ago",
-    unread: false,
-    action: "View Activity",
-  },
-];
+const API_URL = "http://localhost:8000";
 
 const filters = [
   { label: "All", value: "All" },
   { label: "Unread", value: "Unread" },
   { label: "Applications", value: "Applications" },
+  { label: "New Jobs", value: "New Jobs" },
   { label: "Saved Jobs", value: "Saved Jobs" },
   { label: "System", value: "System" },
 ];
@@ -217,7 +62,7 @@ function NotificationItem({ notification, onRead, onAction }) {
 
   return (
     <article
-      className={`relative flex flex-col gap-4 rounded-2xl px-5 py-5 shadow-[0_5px_18px_rgba(30,40,100,0.08)] transition duration-200 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${
+      className={`relative flex cursor-pointer flex-col gap-4 rounded-2xl px-5 py-5 shadow-[0_5px_18px_rgba(30,40,100,0.08)] transition duration-200 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${
         notification.unread ? "bg-[#E9ECFA]" : "bg-[#EAECF7]/75"
       }`}
       onClick={() => onRead(notification.id)}
@@ -232,9 +77,7 @@ function NotificationItem({ notification, onRead, onAction }) {
             }`}
           >
             {notification.icon}
-            <span className="sr-only">
-              {notification.name}
-            </span>
+            <span className="sr-only">{notification.name}</span>
           </div>
         ) : (
           <div
@@ -272,7 +115,7 @@ function NotificationItem({ notification, onRead, onAction }) {
 
             {notification.company && (
               <span className="text-xs text-[#9AA6C0]">
-                • {notification.company}
+                - {notification.company}
               </span>
             )}
           </div>
@@ -285,11 +128,14 @@ function NotificationItem({ notification, onRead, onAction }) {
             {notification.status && (
               <span
                 className={`rounded-full px-3 py-1 font-medium ${
-                  notification.status === "Active"
+                  notification.status === "Active" ||
+                  notification.status === "Accepted"
                     ? "bg-[#D2F7E8] text-[#07996D]"
-                    : notification.status === "Closed"
+                    : notification.status === "Closed" ||
+                        notification.status === "Rejected"
                       ? "bg-[#FFE0E5] text-[#E84B66]"
-                      : notification.status === "Interview"
+                      : notification.status === "Pending" ||
+                          notification.status === "New Job"
                         ? "bg-[#DCE3FF] text-[#3455E8]"
                         : "bg-[#EDF0F6] text-[#60708A]"
                 }`}
@@ -304,9 +150,7 @@ function NotificationItem({ notification, onRead, onAction }) {
               </span>
             )}
 
-            <span className="text-[#9AA6C0]">
-              {notification.time}
-            </span>
+            <span className="text-[#9AA6C0]">{notification.time}</span>
 
             {notification.unread && (
               <span className="h-2 w-2 rounded-full bg-[#0010FF]" />
@@ -323,7 +167,7 @@ function NotificationItem({ notification, onRead, onAction }) {
             onRead(notification.id);
             onAction(notification);
           }}
-          className={`rounded-full px-5 py-2.5 text-sm font-medium transition hover:-translate-y-0.5 ${
+          className={`cursor-pointer rounded-full px-5 py-2.5 text-sm font-medium transition hover:-translate-y-0.5 ${
             notification.action === "View Summary" ||
             notification.action === "Check Details"
               ? "text-[#0010FF] hover:bg-white/70"
@@ -345,14 +189,65 @@ function NotificationItem({ notification, onRead, onAction }) {
 
 function Notifications() {
   const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem("workly_user") || "null");
+  const userId = currentUser?.ID_USER || currentUser?.id_user || null;
+
+  const storageKey = userId ? `workly_read_notifs_${userId}` : null;
 
   const [activeFilter, setActiveFilter] = useState("All");
-  const [notifications, setNotifications] = useState(notificationsData);
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [rawNotifications, setRawNotifications] = useState([]);
+  const [readIds, setReadIds] = useState(() => {
+    if (!storageKey) return [];
+    return JSON.parse(localStorage.getItem(storageKey) || "[]");
+  });
+  const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(6);
 
-  const unreadCount = notifications.filter(
-    (item) => item.unread
-  ).length;
+  useEffect(() => {
+    if (!userId) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${API_URL}/notifications/read.php?id_user=${userId}`
+        );
+        const result = await res.json();
+
+        if (result.status && Array.isArray(result.notifications)) {
+          setRawNotifications(result.notifications);
+        } else {
+          setRawNotifications([]);
+        }
+      } catch (err) {
+        console.error("Gagal memuat notifikasi:", err);
+        setRawNotifications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [userId, navigate]);
+
+  const notifications = useMemo(() => {
+    return rawNotifications.map((item) => {
+      const isUnread =
+        item.forceUnread !== undefined
+          ? item.forceUnread && !readIds.includes(item.id)
+          : !readIds.includes(item.id);
+
+      return {
+        ...item,
+        unread: isUnread,
+      };
+    });
+  }, [rawNotifications, readIds]);
+
+  const unreadCount = notifications.filter((item) => item.unread).length;
 
   const counts = {
     All: notifications.length,
@@ -360,12 +255,12 @@ function Notifications() {
     Applications: notifications.filter(
       (item) => item.category === "Applications"
     ).length,
+    "New Jobs": notifications.filter((item) => item.category === "New Jobs")
+      .length,
     "Saved Jobs": notifications.filter(
       (item) => item.category === "Saved Jobs"
     ).length,
-    System: notifications.filter(
-      (item) => item.category === "System"
-    ).length,
+    System: notifications.filter((item) => item.category === "System").length,
   };
 
   const filteredNotifications = useMemo(() => {
@@ -377,75 +272,47 @@ function Notifications() {
       return notifications;
     }
 
-    return notifications.filter(
-      (item) => item.category === activeFilter
-    );
+    return notifications.filter((item) => item.category === activeFilter);
   }, [activeFilter, notifications]);
 
-  const visibleNotifications = filteredNotifications.slice(
-    0,
-    visibleCount
-  );
+  const visibleNotifications = filteredNotifications.slice(0, visibleCount);
 
   function handleRead(id) {
-    setNotifications((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, unread: false } : item
-      )
-    );
+    setReadIds((prev) => {
+      if (prev.includes(id)) return prev;
+      const updated = [...prev, id];
+      if (storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }
+
+  function handleMarkAllRead() {
+    const allIds = rawNotifications.map((item) => item.id);
+    setReadIds(allIds);
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(allIds));
+    }
   }
 
   function handleAction(notification) {
-    if (
-      notification.action === "Complete Profile" ||
-      notification.action === "Update Profile"
-    ) {
-      navigate("/profile");
+    if (notification.link) {
+      navigate(notification.link);
       return;
     }
-
-    if (notification.action === "View Activity") {
-      navigate("/activity");
-      return;
-    }
-
-    if (
-      notification.action === "View Job" ||
-      notification.action === "View Job Post"
-    ) {
-      navigate("/jobs");
-      return;
-    }
-
-    if (
-      notification.action === "Review Application" ||
-      notification.action === "Reply Message"
-    ) {
-      navigate("/activity");
-      return;
-    }
-
-    if (notification.action === "View Summary") {
-      navigate("/post-job");
-      return;
-    }
-
-    if (notification.action === "Check Details") {
-      navigate("/profile");
-    }
+    navigate("/activity");
   }
 
   function changeFilter(value) {
     setActiveFilter(value);
-    setVisibleCount(5);
+    setVisibleCount(6);
   }
 
   return (
     <main className="min-h-screen bg-[#010133]">
-
       {/* NAVBAR AREA */}
       <div className="relative h-[120px] overflow-hidden bg-[#010133]">
-
         {/* Background Glow */}
         <div
           className="pointer-events-none absolute inset-0 bg-no-repeat"
@@ -461,14 +328,27 @@ function Notifications() {
 
       {/* NOTIFICATION CONTENT */}
       <section className="mx-auto min-h-[calc(100vh-120px)] w-full max-w-[1600px] rounded-t-[30px] bg-[#F5F6FF] px-6 pb-14 pt-10 sm:px-10 lg:px-[6.4%] lg:pt-12">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#10111A] md:text-[32px]">
-            Notifications
-          </h1>
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#10111A] md:text-[32px]">
+              Notifications
+            </h1>
 
-          <p className="mt-2 text-sm text-[#71809D] md:text-base">
-            Stay updated on your job applications, candidate submissions, and system alerts.
-          </p>
+            <p className="mt-2 text-sm text-[#71809D] md:text-base">
+              Stay updated on your job applications, candidate submissions, and new job posts.
+            </p>
+          </div>
+
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              className="inline-flex cursor-pointer items-center gap-2 self-start rounded-full border border-[#D4DCF0] bg-white px-4 py-2 text-xs font-semibold text-[#0010FF] shadow-sm transition hover:bg-[#E9EDFF] sm:self-auto"
+            >
+              <CheckCheck size={15} />
+              Mark all as read
+            </button>
+          )}
         </div>
 
         {/* FILTER TABS */}
@@ -478,7 +358,7 @@ function Notifications() {
               key={filter.value}
               type="button"
               onClick={() => changeFilter(filter.value)}
-              className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition ${
+              className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition ${
                 activeFilter === filter.value
                   ? "bg-[#0010FF] text-white"
                   : "border border-[#E0E5F1] bg-white text-[#52617D] hover:bg-[#E9EDFF]"
@@ -510,19 +390,22 @@ function Notifications() {
                 </span>
               )}
 
-              {filter.value !== "All" &&
-                filter.value !== "Unread" && (
-                  <span className="text-xs opacity-70">
-                    ({counts[filter.value]})
-                  </span>
-                )}
+              {filter.value !== "All" && filter.value !== "Unread" && (
+                <span className="text-xs opacity-70">
+                  ({counts[filter.value] ?? 0})
+                </span>
+              )}
             </button>
           ))}
         </div>
 
         {/* NOTIFICATION LIST */}
         <div className="mt-7 space-y-3.5">
-          {visibleNotifications.length > 0 ? (
+          {loading ? (
+            <div className="rounded-2xl bg-white px-6 py-16 text-center text-sm text-[#71809D] shadow-sm">
+              Memuat notifikasi dari database...
+            </div>
+          ) : visibleNotifications.length > 0 ? (
             visibleNotifications.map((notification) => (
               <NotificationItem
                 key={notification.id}
@@ -563,10 +446,8 @@ function Notifications() {
           {visibleCount < filteredNotifications.length && (
             <button
               type="button"
-              onClick={() =>
-                setVisibleCount((current) => current + 5)
-              }
-              className="mt-3 rounded-full border border-[#E0E5F1] bg-white px-6 py-2.5 text-sm font-medium text-[#52617D] shadow-sm transition hover:bg-[#E9EDFF]"
+              onClick={() => setVisibleCount((current) => current + 6)}
+              className="mt-3 cursor-pointer rounded-full border border-[#E0E5F1] bg-white px-6 py-2.5 text-sm font-medium text-[#52617D] shadow-sm transition hover:bg-[#E9EDFF]"
             >
               Load Earlier Notifications
             </button>

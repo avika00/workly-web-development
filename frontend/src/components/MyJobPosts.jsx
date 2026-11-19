@@ -1,36 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import PageFooter from "./PageFooter";
 
-const jobs = [
-  {
-    id: 1,
-    icon: "🎨",
-    title: "UI/UX Designer",
-    company: "CV. Creative Studio",
-    type: "Remote · Freelance",
-    salary: "Rp2–4M",
-    applicants: 12,
-    status: "Active",
-  },
-  {
-    id: 2,
-    icon: "💻",
-    title: "Frontend Developer",
-    company: "CV. Creative Studio",
-    type: "Remote · Freelance",
-    salary: "Rp3–5M",
-    applicants: 3,
-    status: "Closed",
-  },
-];
+const API_URL = "http://localhost:8000";
 
 function MyJobPosts() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
   const navigate = useNavigate();
 
+  const currentUser = JSON.parse(localStorage.getItem("workly_user") || "null");
   const filters = ["All", "Active", "Closed", "Draft"];
+
+  useEffect(() => {
+    if (!currentUser?.ID_USER) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchMyJobs = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/jobs/my_jobs.php?id_user=${currentUser.ID_USER}`
+        );
+        const result = await res.json();
+
+        if (result.status) {
+          setJobs(result.jobs);
+        }
+      } catch (err) {
+        console.error("Gagal memuat daftar lowongan:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyJobs();
+  }, [currentUser?.ID_USER, navigate]);
 
   const filteredJobs =
     activeFilter === "All"
@@ -96,7 +104,11 @@ function MyJobPosts() {
 
           {/* Job List */}
           <div className="mt-10 flex flex-col gap-7">
-            {filteredJobs.length > 0 ? (
+            {loading ? (
+              <div className="rounded-2xl border border-white/20 bg-white/[0.05] py-14 text-center text-sm text-white/70">
+                Memuat daftar lowongan...
+              </div>
+            ) : filteredJobs.length > 0 ? (
               filteredJobs.map((job) => (
                 <article
                   key={job.id}
@@ -105,7 +117,15 @@ function MyJobPosts() {
                   {/* Job Information */}
                   <div className="flex items-center gap-6">
                     <div className="flex h-[70px] w-[90px] shrink-0 items-center justify-center text-[48px]">
-                      {job.icon}
+                      {job.logo ? (
+                        <img
+                          src={`${API_URL}/uploads/logos/${job.logo}`}
+                          alt={job.company}
+                          className="h-16 w-16 rounded-xl bg-white object-contain p-1.5"
+                        />
+                      ) : (
+                        "💼"
+                      )}
                     </div>
 
                     <div>

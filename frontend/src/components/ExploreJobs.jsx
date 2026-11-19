@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -14,225 +14,113 @@ import uiuxImage from "../assets/images/jobs/ui-ux-designer.jpg";
 import frontendImage from "../assets/images/jobs/frontend-developer.jpg";
 import socialImage from "../assets/images/jobs/social-media-analyst.jpg";
 
-// JOB DATA
-const jobs = [
-  {
-    id: 1,
-    title: "UI/UX Designer",
-    company: "CV. Creative Studio",
-    category: "Design & Creative",
-    type: "Remote",
-    employment: "Freelance",
-    salary: 4000000,
-    salaryLabel: "Rp2–4M / mo",
-    applicants: 12,
-    status: "Active",
-    posted: "Posted 2 hours ago",
-    experience: "Mid-Level",
-    icon: "🎨",
-    image: uiuxImage,
-  },
-  {
-    id: 2,
-    title: "Frontend Developer",
-    company: "CV. Creative Studio",
-    category: "Development & Tech",
-    type: "Remote",
-    employment: "Full-time",
-    salary: 8000000,
-    salaryLabel: "Rp5–8M / mo",
-    applicants: 8,
-    status: "Active",
-    posted: "Posted 5 hours ago",
-    experience: "Mid-Level",
-    icon: "💻",
-    image: frontendImage,
-  },
-  {
-    id: 3,
-    title: "Social Media Analyst",
-    company: "Fashion Local Brand",
-    category: "Marketing & Social Media",
-    type: "Hybrid",
-    employment: "Part-time",
-    salary: 3000000,
-    salaryLabel: "Rp2–3M / mo",
-    applicants: 19,
-    status: "Active",
-    posted: "Posted 1 day ago",
-    experience: "Entry-Level",
-    icon: "📱",
-    image: socialImage,
-  },
-  {
-    id: 4,
-    title: "Senior Backend Engineer",
-    company: "Nexus Tech Global",
-    category: "Development & Tech",
-    type: "Remote",
-    employment: "Contract",
-    salary: 18000000,
-    salaryLabel: "Rp12–18M / mo",
-    applicants: 5,
-    status: "Active",
-    posted: "Posted 2 days ago",
-    experience: "Senior",
-    icon: "⚡",
-    image: frontendImage,
-  },
-  {
-    id: 5,
-    title: "Product Designer",
-    company: "Digital Creative",
-    category: "Design & Creative",
-    type: "Remote",
-    employment: "Full-time",
-    salary: 7000000,
-    salaryLabel: "Rp5–7M / mo",
-    applicants: 10,
-    status: "Active",
-    posted: "Posted 3 days ago",
-    experience: "Mid-Level",
-    icon: "🎨",
-    image: uiuxImage,
-  },
-  {
-    id: 6,
-    title: "Digital Marketing Specialist",
-    company: "Growth Media",
-    category: "Marketing & Social Media",
-    type: "Hybrid",
-    employment: "Full-time",
-    salary: 6500000,
-    salaryLabel: "Rp5–6.5M / mo",
-    applicants: 14,
-    status: "Active",
-    posted: "Posted 4 days ago",
-    experience: "Mid-Level",
-    icon: "📱",
-    image: socialImage,
-  },
-  {
-    id: 7,
-    title: "Frontend Web Developer",
-    company: "Tech Solution",
-    category: "Development & Tech",
-    type: "Remote",
-    employment: "Internship",
-    salary: 2500000,
-    salaryLabel: "Rp2–2.5M / mo",
-    applicants: 22,
-    status: "Active",
-    posted: "Posted 5 days ago",
-    experience: "Entry-Level",
-    icon: "💻",
-    image: frontendImage,
-  },
-  {
-    id: 8,
-    title: "Creative Content Writer",
-    company: "Content House",
-    category: "Writing & Translation",
-    type: "Remote",
-    employment: "Freelance",
-    salary: 3500000,
-    salaryLabel: "Rp2–3.5M / mo",
-    applicants: 7,
-    status: "Active",
-    posted: "Posted 1 week ago",
-    experience: "Entry-Level",
-    icon: "✍️",
-    image: socialImage,
-  },
-];
+const API_URL = "http://localhost:8000";
+const FALLBACK_IMAGES = [uiuxImage, frontendImage, socialImage];
 
-// CATEGORY FILTER
-const categories = [
-  { name: "Design & Creative", count: 34 },
-  { name: "Development & Tech", count: 52 },
-  { name: "Marketing & Social Media", count: 28 },
-  { name: "Writing & Translation", count: 14 },
-  { name: "Business & Data", count: 20 },
-];
-
-// JOB TYPE FILTER
 const jobTypes = [
   "All",
   "Full-time",
   "Remote",
+  "Hybrid",
+  "On-Site",
   "Freelance",
   "Part-time",
   "Contract",
   "Internship",
 ];
 
-// RECOMMENDED JOBS
-const recommendedJobs = [
-  {
-    id: 1,
-    title: "UI/UX Designer Creative Studio",
-    type: "Remote · Freelance",
-    salary: "Rp2–4M",
-    image: uiuxImage,
-  },
-  {
-    id: 2,
-    title: "Frontend Developer Tech Company",
-    type: "Remote · Full-time",
-    salary: "Rp5–8M",
-    image: frontendImage,
-  },
-  {
-    id: 3,
-    title: "Social Media Analyst Fashion Local Brand",
-    type: "Hybrid · Part-time",
-    salary: "Rp2–3M",
-    image: socialImage,
-  },
-  {
-    id: 4,
-    title: "UI/UX Designer Creative Studio",
-    type: "Remote · Freelance",
-    salary: "Rp2–4M",
-    image: uiuxImage,
-  },
-  {
-    id: 5,
-    title: "Frontend Developer Tech Company",
-    type: "Remote · Full-time",
-    salary: "Rp5–8M",
-    image: frontendImage,
-  },
-  {
-    id: 6,
-    title: "Social Media Analyst Fashion Local Brand",
-    type: "Hybrid · Part-time",
-    salary: "Rp2–3M",
-    image: socialImage,
-  },
-];
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[-_\s]+/g, "");
+}
+
+function matchesExperienceLevel(jobExp, filterExp) {
+  if (!filterExp) return true;
+  const exp = String(jobExp || "").toLowerCase();
+
+  if (filterExp === "Entry-Level") {
+    return (
+      exp.includes("entry") ||
+      exp.includes("fresh") ||
+      exp.includes("less than 1") ||
+      exp.includes("junior")
+    );
+  }
+  if (filterExp === "Mid-Level") {
+    return exp.includes("mid") || exp.includes("1-3");
+  }
+  if (filterExp === "Senior") {
+    return (
+      exp.includes("senior") ||
+      exp.includes("3-5") ||
+      exp.includes("more than 5")
+    );
+  }
+  return exp === filterExp.toLowerCase();
+}
 
 function ExploreJobs() {
+  const currentUser = JSON.parse(localStorage.getItem("workly_user") || "null");
+
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All");
 
-  const [selectedCategories, setSelectedCategories] = useState([
-    "Design & Creative",
-    "Development & Tech",
-  ]);
-
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [salaryLimit, setSalaryLimit] = useState(20000000);
-  const [experience, setExperience] = useState("Mid-Level");
+  const [experience, setExperience] = useState("");
   const [sortBy, setSortBy] = useState("Most Relevant");
 
   const [appliedFilters, setAppliedFilters] = useState({
-    categories: ["Design & Creative", "Development & Tech"],
+    categories: [],
     salary: 20000000,
-    experience: "Mid-Level",
+    experience: "",
   });
 
-  const [visibleCount, setVisibleCount] = useState(4);
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  useEffect(() => {
+    const fetchExploreJobs = async () => {
+      setLoading(true);
+      try {
+        const query = currentUser?.ID_USER
+          ? `?id_user=${currentUser.ID_USER}`
+          : "";
+        const res = await fetch(`${API_URL}/jobs/explore.php${query}`);
+        const result = await res.json();
+
+        if (result.status && Array.isArray(result.jobs)) {
+          setJobs(result.jobs);
+        } else {
+          setJobs([]);
+        }
+      } catch (err) {
+        console.error("Gagal memuat lowongan:", err);
+        setJobs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExploreJobs();
+  }, [currentUser?.ID_USER]);
+
+  // Daftar kategori dan jumlah lowongan secara dinamis dari database
+  const categories = useMemo(() => {
+    const counts = {};
+    jobs.forEach((job) => {
+      const cat = job.category || "Other";
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [jobs]);
 
   // FILTER AND SORT JOBS
   const filteredJobs = useMemo(() => {
@@ -243,22 +131,32 @@ function ExploreJobs() {
         !keyword ||
         job.title.toLowerCase().includes(keyword) ||
         job.company.toLowerCase().includes(keyword) ||
-        job.category.toLowerCase().includes(keyword);
+        job.category.toLowerCase().includes(keyword) ||
+        job.location.toLowerCase().includes(keyword) ||
+        (job.skills || []).some((skill) =>
+          skill.toLowerCase().includes(keyword)
+        );
 
+      const normalizedSelected = normalizeText(selectedType);
       const matchesType =
         selectedType === "All" ||
-        job.type === selectedType ||
-        job.employment === selectedType;
+        normalizeText(job.type) === normalizedSelected ||
+        normalizeText(job.employment) === normalizedSelected;
 
       const matchesCategory =
         appliedFilters.categories.length === 0 ||
         appliedFilters.categories.includes(job.category);
 
-      const matchesSalary = job.salary <= appliedFilters.salary;
+      // Jika slider di posisi maksimal (20M+), tampilkan semua termasuk di atas 20M
+      const matchesSalary =
+        appliedFilters.salary >= 20000000 ||
+        job.salary === 0 ||
+        job.salary <= appliedFilters.salary;
 
-      const matchesExperience =
-        !appliedFilters.experience ||
-        job.experience === appliedFilters.experience;
+      const matchesExperience = matchesExperienceLevel(
+        job.experience,
+        appliedFilters.experience
+      );
 
       return (
         matchesSearch &&
@@ -270,21 +168,28 @@ function ExploreJobs() {
     });
 
     if (sortBy === "Salary: Highest") {
-      result.sort((a, b) => b.salary - a.salary);
+      result = [...result].sort((a, b) => b.salary - a.salary);
     } else if (sortBy === "Salary: Lowest") {
-      result.sort((a, b) => a.salary - b.salary);
+      result = [...result].sort((a, b) => a.salary - b.salary);
     } else if (sortBy === "Most Applicants") {
-      result.sort((a, b) => b.applicants - a.applicants);
+      result = [...result].sort((a, b) => b.applicants - a.applicants);
     }
 
     return result;
-  }, [searchTerm, selectedType, appliedFilters, sortBy]);
+  }, [jobs, searchTerm, selectedType, appliedFilters, sortBy]);
+
+  // Rekomendasi lowongan berdasarkan kecocokan skill user
+  const recommendedJobs = useMemo(() => {
+    return [...jobs]
+      .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+      .slice(0, 6);
+  }, [jobs]);
 
   // SEARCH
   const handleSearch = (event) => {
     event.preventDefault();
     setSearchTerm(searchInput.trim());
-    setVisibleCount(4);
+    setVisibleCount(6);
   };
 
   // CATEGORY SELECTION
@@ -304,11 +209,14 @@ function ExploreJobs() {
       experience,
     });
 
-    setVisibleCount(4);
+    setVisibleCount(6);
   };
 
   // RESET FILTERS
   const resetFilters = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    setSelectedType("All");
     setSelectedCategories([]);
     setSalaryLimit(20000000);
     setExperience("");
@@ -319,7 +227,7 @@ function ExploreJobs() {
       experience: "",
     });
 
-    setVisibleCount(4);
+    setVisibleCount(6);
   };
 
   return (
@@ -339,7 +247,7 @@ function ExploreJobs() {
         />
 
         <div className="relative z-10">
-          <Navbar isLoggedIn={true} />
+          <Navbar isLoggedIn={Boolean(currentUser)} />
 
           {/* CONTENT */}
           <div className="mx-auto max-w-[1440px] px-6 pb-10 pt-[120px] md:px-12 lg:px-[7%]">
@@ -382,7 +290,7 @@ function ExploreJobs() {
                   key={type}
                   onClick={() => {
                     setSelectedType(type);
-                    setVisibleCount(4);
+                    setVisibleCount(6);
                   }}
                   className={`rounded-full border px-5 py-2 text-xs transition ${
                     selectedType === type
@@ -434,59 +342,73 @@ function ExploreJobs() {
 
                 {/* JOB CARDS */}
                 <div className="space-y-4">
-                  {filteredJobs.slice(0, visibleCount).map((job) => (
-                    <article
-                      key={job.id}
-                      className="flex min-h-[112px] flex-col justify-between gap-4 rounded-2xl border border-white/15 bg-white/[0.075] p-4 shadow-lg backdrop-blur-sm transition hover:border-white/30 sm:flex-row sm:items-center sm:px-5"
-                    >
-                      <div className="flex min-w-0 items-center gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-400/20 bg-[#142052] text-2xl">
-                          {job.icon}
-                        </div>
-
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-base font-bold text-white md:text-lg">
-                              {job.title}
-                            </h2>
-
-                            <span className="rounded-md bg-[#4145FF] px-2 py-1 text-[10px] font-semibold text-white">
-                              {job.applicants} Applicants
-                            </span>
-
-                            <span className="rounded-md bg-[#25A76B] px-2 py-1 text-[10px] font-semibold text-white">
-                              {job.status}
-                            </span>
+                  {loading ? (
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-14 text-center text-sm text-white/70">
+                      Memuat daftar lowongan...
+                    </div>
+                  ) : (
+                    filteredJobs.slice(0, visibleCount).map((job) => (
+                      <article
+                        key={job.id}
+                        className="flex min-h-[112px] flex-col justify-between gap-4 rounded-2xl border border-white/15 bg-white/[0.075] p-4 shadow-lg backdrop-blur-sm transition hover:border-white/30 sm:flex-row sm:items-center sm:px-5"
+                      >
+                        <div className="flex min-w-0 items-center gap-4">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-blue-400/20 bg-[#142052] text-2xl">
+                            {job.logo ? (
+                              <img
+                                src={`${API_URL}/uploads/logos/${job.logo}`}
+                                alt={job.company}
+                                className="h-full w-full bg-white object-contain p-1"
+                              />
+                            ) : (
+                              "💼"
+                            )}
                           </div>
 
-                          <p className="mt-1 text-sm text-white/85">
-                            {job.company}
-                          </p>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h2 className="text-base font-bold text-white md:text-lg">
+                                {job.title}
+                              </h2>
 
-                          <p className="mt-1 text-xs text-white/60">
-                            {job.type} · {job.employment} · {job.salaryLabel}
-                          </p>
+                              <span className="rounded-md bg-[#4145FF] px-2 py-1 text-[10px] font-semibold text-white">
+                                {job.applicants} Applicants
+                              </span>
+
+                              <span className="rounded-md bg-[#25A76B] px-2 py-1 text-[10px] font-semibold text-white">
+                                {job.status}
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-sm text-white/85">
+                              {job.company}
+                            </p>
+
+                            <p className="mt-1 text-xs text-white/60">
+                              {job.location} · {job.employment} · {job.salaryLabel}
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end">
-                        <Link
-                          to={`/jobs/${job.id}`}
-                          className="flex items-center gap-1 text-sm font-medium text-white underline underline-offset-2 transition hover:text-blue-300"
-                        >
-                          View Details
-                          <ChevronRight size={16} />
-                        </Link>
+                        <div className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end">
+                          <Link
+                            to={`/jobs/${job.id}`}
+                            className="flex items-center gap-1 text-sm font-medium text-white underline underline-offset-2 transition hover:text-blue-300"
+                          >
+                            View Details
+                            <ChevronRight size={16} />
+                          </Link>
 
-                        <span className="text-[10px] text-white/40">
-                          {job.posted}
-                        </span>
-                      </div>
-                    </article>
-                  ))}
+                          <span className="text-[10px] text-white/40">
+                            {job.posted}
+                          </span>
+                        </div>
+                      </article>
+                    ))
+                  )}
 
                   {/* EMPTY STATE */}
-                  {filteredJobs.length === 0 && (
+                  {!loading && filteredJobs.length === 0 && (
                     <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-12 text-center">
                       <Search
                         size={30}
@@ -509,7 +431,7 @@ function ExploreJobs() {
                   <div className="mt-5 text-center">
                     <button
                       onClick={() =>
-                        setVisibleCount((current) => current + 4)
+                        setVisibleCount((current) => current + 6)
                       }
                       className="rounded-full border border-white/15 bg-[#10143D] px-7 py-3 text-xs font-medium text-white transition hover:border-blue-400 hover:bg-[#18245B]"
                     >
@@ -544,31 +466,37 @@ function ExploreJobs() {
                     Category
                   </h3>
 
-                  <div className="space-y-3">
-                    {categories.map((category) => (
-                      <label
-                        key={category.name}
-                        className="flex cursor-pointer items-center justify-between gap-2 text-xs text-white/70"
-                      >
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedCategories.includes(
-                              category.name
-                            )}
-                            onChange={() => toggleCategory(category.name)}
-                            className="h-3.5 w-3.5 accent-[#2864F0]"
-                          />
+                  {categories.length > 0 ? (
+                    <div className="space-y-3">
+                      {categories.map((category) => (
+                        <label
+                          key={category.name}
+                          className="flex cursor-pointer items-center justify-between gap-2 text-xs text-white/70"
+                        >
+                          <span className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(
+                                category.name
+                              )}
+                              onChange={() => toggleCategory(category.name)}
+                              className="h-3.5 w-3.5 accent-[#2864F0]"
+                            />
 
-                          {category.name}
-                        </span>
+                            {category.name}
+                          </span>
 
-                        <span className="text-white/35">
-                          {category.count}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                          <span className="text-white/35">
+                            {category.count}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-white/40">
+                      Belum ada kategori tersedia.
+                    </p>
+                  )}
                 </div>
 
                 {/* SALARY */}
@@ -580,6 +508,7 @@ function ExploreJobs() {
 
                     <span className="text-[10px] font-medium text-blue-400">
                       Rp2M – Rp{(salaryLimit / 1000000).toFixed(0)}M
+                      {salaryLimit >= 20000000 ? "+" : ""}
                     </span>
                   </div>
 
@@ -615,11 +544,11 @@ function ExploreJobs() {
                       },
                       {
                         value: "Mid-Level",
-                        label: "Mid-Level (2–4 yrs)",
+                        label: "Mid-Level (1–3 yrs)",
                       },
                       {
                         value: "Senior",
-                        label: "Senior / Specialist (5+ yrs)",
+                        label: "Senior / Specialist (3+ yrs)",
                       },
                     ].map((item) => (
                       <label
@@ -667,45 +596,57 @@ function ExploreJobs() {
             Jobs matched with your skills and interests.
           </p>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recommendedJobs.map((job) => (
-              <article
-                key={job.id}
-                className="overflow-hidden rounded-2xl border border-gray-200 bg-[#F5F6FF] shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative h-[190px] overflow-hidden">
-                  <img
-                    src={job.image}
-                    alt={job.title}
-                    className="h-full w-full object-cover"
-                  />
+          {recommendedJobs.length > 0 ? (
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {recommendedJobs.map((job, index) => (
+                <article
+                  key={job.id}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-[#F5F6FF] shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="relative h-[190px] overflow-hidden bg-[#142052]">
+                    <img
+                      src={
+                        job.logo
+                          ? `${API_URL}/uploads/logos/${job.logo}`
+                          : FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]
+                      }
+                      alt={job.title}
+                      className={`h-full w-full ${
+                        job.logo ? "bg-white object-contain p-6" : "object-cover"
+                      }`}
+                    />
 
-                  <span className="absolute bottom-3 right-4 rounded-md bg-[#FF7700] px-3 py-1 text-xs font-semibold text-white">
-                    {job.salary}
-                  </span>
-                </div>
-
-                <div className="p-4">
-                  <h3 className="min-h-[44px] text-base font-bold leading-snug text-[#101020]">
-                    {job.title}
-                  </h3>
-
-                  <p className="mt-1 text-sm text-[#55556D]">
-                    {job.type}
-                  </p>
-
-                  <div className="mt-4 flex justify-end">
-                    <Link
-                      to={`/jobs/${job.id}`}
-                      className="rounded-lg bg-[#0010FF] px-8 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      Apply
-                    </Link>
+                    <span className="absolute bottom-3 right-4 rounded-md bg-[#FF7700] px-3 py-1 text-xs font-semibold text-white">
+                      {job.salaryLabel}
+                    </span>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+
+                  <div className="p-4">
+                    <h3 className="min-h-[44px] text-base font-bold leading-snug text-[#101020]">
+                      {job.title} — {job.company}
+                    </h3>
+
+                    <p className="mt-1 text-sm text-[#55556D]">
+                      {job.location} · {job.employment}
+                    </p>
+
+                    <div className="mt-4 flex justify-end">
+                      <Link
+                        to={`/jobs/${job.id}`}
+                        className="rounded-lg bg-[#0010FF] px-8 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
+                      >
+                        Apply
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-6 text-sm text-[#55556D]">
+              Belum ada rekomendasi lowongan dari pengguna lain saat ini.
+            </p>
+          )}
         </div>
       </section>
 

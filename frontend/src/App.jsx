@@ -4,6 +4,8 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+import Messages from "./components/Messages";
+
 // Home Before Login
 import Hero from "./components/Hero";
 import Opportunities from "./components/HomeSections";
@@ -33,6 +35,7 @@ import JobDetailsStep from "./components/JobDetailsStep";
 import ReviewStep from "./components/ReviewStep";
 import JobPostedSuccess from "./components/JobPostedSuccess";
 import JobPostDetails from "./components/JobPostDetails";
+import ApplicantDetail from "./components/ApplicantDetail";
 
 // Activity
 import Activity from "./components/Activity";
@@ -132,6 +135,9 @@ function App() {
       {/* Home After Login */}
       <Route path="/home" element={<HomeAfterLogin />} />
 
+      <Route path="/messages" element={<Messages />} />
+      <Route path="/messages/:applicationId" element={<Messages />} />
+
       {/* Explore Jobs */}
       <Route path="/jobs" element={<ExploreJobs />} />
       <Route path="/jobs/:id" element={<JobDetail />} />
@@ -157,6 +163,10 @@ function App() {
       <Route
         path="/post-job/:id"
         element={<JobPostDetails />}
+      />
+      <Route
+        path="/post-job/:id/applicant/:applicantId"
+        element={<ApplicantDetail />}
       />
 
       {/* Activity */}

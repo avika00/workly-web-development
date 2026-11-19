@@ -1,6 +1,9 @@
 function WelcomeSection() {
-  // Data sementara untuk tampilan frontend
-  const userName = "Aria Seraphina";
+  // Ambil data user yang disimpan saat login dari localStorage
+  const currentUser = JSON.parse(localStorage.getItem("workly_user") || "null");
+
+  // Ambil FULLNAME dari tabel PROFILE; jika kosong otomatis pakai USERNAME
+  const userName = currentUser?.FULLNAME || currentUser?.USERNAME || "Guest";
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -11,12 +14,11 @@ function WelcomeSection() {
   return (
     <section className="relative px-6 pt-[125px] pb-12 text-center text-white">
       <div className="relative z-10 mx-auto max-w-[800px]">
-
         {/* GREETING */}
         <h1 className="text-[36px] leading-tight font-bold tracking-tight sm:text-[42px] md:text-[48px]">
           Good to see you,
           <br />
-          <span className="text-[#4E59FF]">
+          <span className="text-workly-highlight">
             {userName}!
           </span>
         </h1>
@@ -29,7 +31,7 @@ function WelcomeSection() {
         {/* SEARCH BAR */}
         <form
           onSubmit={handleSearch}
-          className="mx-auto mt-5 flex h-[42px] w-full max-w-[420px] items-center rounded-full border border-white/80 bg-transparent px-4 transition focus-within:border-[#4E59FF] focus-within:ring-2 focus-within:ring-[#4E59FF]/20"
+          className="mx-auto mt-5 flex h-[42px] w-full max-w-[420px] items-center rounded-full border border-white/80 bg-transparent px-4 transition focus-within:border-workly-highlight focus-within:ring-2 focus-within:ring-workly-highlight/20"
         >
           <input
             type="text"
@@ -40,7 +42,7 @@ function WelcomeSection() {
           <button
             type="submit"
             aria-label="Search jobs"
-            className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center text-white transition hover:text-[#4E59FF]"
+            className="ml-2 flex size-7 shrink-0 cursor-pointer items-center justify-center text-white transition hover:text-workly-highlight"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +60,6 @@ function WelcomeSection() {
             </svg>
           </button>
         </form>
-
       </div>
     </section>
   );
